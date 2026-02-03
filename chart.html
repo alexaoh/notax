@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Tax Charts - Norwegian Income Tax Estimator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Tax Calculation Charts</h1>
+      <p>Visual representation of how tax calculations change with gross income.</p>
+
+      <div class="chart-controls">
+        <input type="checkbox" id="grid-toggle">
+        <label for="grid-toggle" class="grid-toggle-label">Show grid lines</label>
+        <div>
+          <label for="income-input">Highlight income on charts:</label>
+          <div class="input-group">
+            <input id="income-input" type="text" placeholder="e.g., 600 000" min="50000" />
+            <button type="button" id="income-up" class="arrow">▲</button>
+            <button type="button" id="income-down" class="arrow">▼</button>
+            <button type="button" id="clear-dots" class="clear-btn">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="charts"></div>
+
+      <p class="chart-note" id="chart-note">Note: Charts display tax calculations at 50,000 NOK intervals from 50,000 to 15,000,000 NOK, providing detailed visualization of how different tax metrics change with income level.</p>
+
+      <footer>
+        <small><a href="index.html">← Return home </a> | <a href="compare.html">Compare Incomes</a></small>
+        <small>Disclaimer: This tool provides estimates only and is not financial or legal advice. Use your own judgment and consult professionals. The author is not liable for any misuse or reliance on this information.</small>
+        <small>© 2026 alexaoh</small>
+      </footer>
+    </main>
+    <script src="tax.js"></script>
+    <script>
+      // Configurable variables
+      const minIncome = 50000;
+      const maxIncome = 1500000;
+      const step = 50000;
+      // State variables
+      let showGrid = false;
+      let highlightIncome = null;
+      // Update the description text
+      const chartNote = document.getElementById('chart-note');
+      chartNote.textContent = `Note: Charts display tax calculations at ${fmtNOK.format(step)} NOK intervals from ${fmtNOK.format(minIncome)} to ${fmtNOK.format(maxIncome)} NOK, providing detailed visualization of how different tax metrics change with income level.`;
+
+      // Generate data points
+      const incomes = [];
+      for (let i = minIncome; i <= maxIncome; i += step) {
+        incomes.push(i);
+      }
+
+      const data = incomes.map(x => {
+        const tax = T(x);
+        const net = x - tax;
+        const tax1 = T(x + 1);
+        const marginal = tax1 - tax;
+        const avgRate = tax / x;
+        return {
+          gross: x,
+          net: net,
+          tax: tax,
+          avgRate: avgRate,
+          marginal: marginal
+        };
+      });
+
+      // Chart dimensions - responsive
+      const container = document.querySelector('.container');
+      const width = Math.min(container.clientWidth - 40, 800); // Max 800px, min padding
+      const isMobile = width < 600;
+      const height = isMobile ? Math.max(width * 0.7, 350) : Math.max(width * 0.5, 300); // Taller on mobile
+      const margin = { 
+        top: 20, 
+        right: Math.max(width * 0.1, 60), 
+        bottom: isMobile ? 100 : 80, 
+        left: Math.max(width * 0.12, 80) 
+      };
+
+      function createChart(title, dataKey, yLabel, yFormat, showGrid = false, highlightIncome = null) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', width);
+        svg.setAttribute('height', height);
+        svg.style.border = '1px solid var(--border)';
+        svg.style.borderRadius = '10px';
+        svg.style.background = 'var(--white)';
+        svg.style.margin = '20px 0';
+
+        // Scales
+        const xScale = (incomes.length - 1) / (width - margin.left - margin.right);
+        const values = data.map(d => d[dataKey]);
+        const yMin = Math.min(...values);
+        const yMax = Math.max(...values);
+        const yRange = yMax - yMin;
+        const yScale = yRange / (height - margin.top - margin.bottom);
+
+        // Axes
+        const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        xAxis.setAttribute('transform', `translate(0,${height - margin.bottom})`);
+        for (let i = 0; i <= 10; i++) {
+          const x = margin.left + (i / 10) * (width - margin.left - margin.right);
+          const income = minIncome + i * ((maxIncome - minIncome) / 10);
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', x);
+          line.setAttribute('y1', 0);
+          line.setAttribute('x2', x);
+          line.setAttribute('y2', 6);
+          line.setAttribute('stroke', 'var(--border)');
+          xAxis.appendChild(line);
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', x);
+          text.setAttribute('y', 20);
+          text.setAttribute('text-anchor', 'middle');
+          text.setAttribute('font-size', isMobile ? '10px' : '12px');
+          if (income >= 1000000) {
+            text.textContent = (income / 1000000).toFixed(1) + 'M';
+          } else {
+            text.textContent = (income / 1000) + 'k';
+          }
+          xAxis.appendChild(text);
+        }
+        svg.appendChild(xAxis);
+
+        const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        yAxis.setAttribute('transform', `translate(${margin.left},0)`);
+        for (let i = 0; i <= 5; i++) {
+          const y = height - margin.bottom - (i / 5) * (height - margin.top - margin.bottom);
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', -6);
+          line.setAttribute('y1', y);
+          line.setAttribute('x2', 0);
+          line.setAttribute('y2', y);
+          line.setAttribute('stroke', 'var(--border)');
+          yAxis.appendChild(line);
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', -10);
+          text.setAttribute('y', y + 4);
+          text.setAttribute('text-anchor', 'end');
+          text.setAttribute('font-size', isMobile ? '10px' : '12px');
+          text.textContent = yFormat(yMin + (i / 5) * yRange);
+          yAxis.appendChild(text);
+        }
+        svg.appendChild(yAxis);
+
+        // Grid lines
+        if (showGrid) {
+          // Vertical grid lines
+          for (let i = 0; i <= 10; i++) {
+            const x = margin.left + (i / 10) * (width - margin.left - margin.right);
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', x);
+            line.setAttribute('y1', margin.top);
+            line.setAttribute('x2', x);
+            line.setAttribute('y2', height - margin.bottom);
+            line.setAttribute('stroke', 'var(--border)');
+            line.setAttribute('stroke-width', '0.5');
+            line.setAttribute('opacity', '0.8');
+            svg.appendChild(line);
+          }
+          // Horizontal grid lines
+          for (let i = 0; i <= 5; i++) {
+            const y = height - margin.bottom - (i / 5) * (height - margin.top - margin.bottom);
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', margin.left);
+            line.setAttribute('y1', y);
+            line.setAttribute('x2', width - margin.right);
+            line.setAttribute('y2', y);
+            line.setAttribute('stroke', 'var(--border)');
+            line.setAttribute('stroke-width', '0.5');
+            line.setAttribute('opacity', '0.8');
+            svg.appendChild(line);
+          }
+        }
+
+        // Axis labels
+        const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        xLabel.setAttribute('x', width / 2);
+        xLabel.setAttribute('y', height - (isMobile ? 5 : 10));
+        xLabel.setAttribute('text-anchor', 'middle');
+        xLabel.setAttribute('font-size', isMobile ? '12px' : '14px');
+        xLabel.setAttribute('font-weight', 'bold');
+        xLabel.textContent = 'Gross Income (NOK)';
+        svg.appendChild(xLabel);
+
+        const yLabelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        yLabelEl.setAttribute('x', -height / 2);
+        yLabelEl.setAttribute('y', isMobile ? 25 : 20);
+        yLabelEl.setAttribute('text-anchor', 'middle');
+        yLabelEl.setAttribute('font-size', isMobile ? '12px' : '14px');
+        yLabelEl.setAttribute('font-weight', 'bold');
+        yLabelEl.setAttribute('transform', 'rotate(-90)');
+        yLabelEl.textContent = yLabel + (dataKey.includes('Rate') || dataKey === 'marginal' ? ' (%)' : ' (NOK)');
+        svg.appendChild(yLabelEl);
+
+        // Title
+        const titleEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        titleEl.setAttribute('x', width / 2);
+        titleEl.setAttribute('y', 20);
+        titleEl.setAttribute('text-anchor', 'middle');
+        titleEl.setAttribute('font-size', isMobile ? '14px' : '16px');
+        titleEl.setAttribute('font-weight', 'bold');
+        titleEl.textContent = title;
+        svg.appendChild(titleEl);
+
+        // Line
+        let pathD = '';
+        data.forEach((d, i) => {
+          const x = margin.left + i / xScale;
+          const y = height - margin.bottom - (d[dataKey] - yMin) / yScale;
+          if (i === 0) {
+            pathD += `M ${x} ${y}`;
+          } else {
+            pathD += ` L ${x} ${y}`;
+          }
+        });
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', pathD);
+        path.setAttribute('stroke', 'var(--primary)');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('fill', 'none');
+        svg.appendChild(path);
+
+        // Highlight dot
+        if (highlightIncome !== null && highlightIncome >= minIncome && highlightIncome <= maxIncome) {
+          const tax = T(highlightIncome);
+          const net = highlightIncome - tax;
+          const tax1 = T(highlightIncome + 1);
+          const marginal = tax1 - tax;
+          const avgRate = tax / highlightIncome;
+          
+          const value = { gross: highlightIncome, net: net, tax: tax, avgRate: avgRate, marginal: marginal }[dataKey];
+          
+          const x = margin.left + ((highlightIncome - minIncome) / (maxIncome - minIncome)) * (width - margin.left - margin.right);
+          const y = height - margin.bottom - (value - yMin) / yScale;
+          
+          const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          dot.setAttribute('cx', x);
+          dot.setAttribute('cy', y);
+          dot.setAttribute('r', '5');
+          dot.setAttribute('fill', 'red');
+          dot.setAttribute('stroke', 'white');
+          dot.setAttribute('stroke-width', '2');
+          svg.appendChild(dot);
+          
+          // Crosshair lines
+          const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          vLine.setAttribute('x1', x);
+          vLine.setAttribute('y1', y);
+          vLine.setAttribute('x2', x);
+          vLine.setAttribute('y2', height - margin.bottom);
+          vLine.setAttribute('stroke', 'red');
+          vLine.setAttribute('stroke-width', '1');
+          vLine.setAttribute('stroke-dasharray', '5,5');
+          vLine.setAttribute('opacity', '1');
+          svg.appendChild(vLine);
+          
+          const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          hLine.setAttribute('x1', margin.left);
+          hLine.setAttribute('y1', y);
+          hLine.setAttribute('x2', x);
+          hLine.setAttribute('y2', y);
+          hLine.setAttribute('stroke', 'red');
+          hLine.setAttribute('stroke-width', '1');
+          hLine.setAttribute('stroke-dasharray', '5,5');
+          hLine.setAttribute('opacity', '1');
+          svg.appendChild(hLine);
+          
+          // Coordinate label
+          const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          label.setAttribute('x', x + 10);
+          label.setAttribute('y', y - 10);
+          label.setAttribute('font-size', isMobile ? '12px' : '14px');
+          label.setAttribute('font-weight', 'bold');
+          label.setAttribute('fill', 'red');
+          
+          let xLabel, yLabel;
+          if (highlightIncome >= 1000000) {
+            xLabel = (highlightIncome / 1000000).toFixed(1) + 'M';
+          } else {
+            xLabel = (highlightIncome / 1000) + 'k';
+          }
+          yLabel = yFormat(value);
+          
+          label.textContent = `(${xLabel}, ${yLabel})`;
+          svg.appendChild(label);
+        }
+
+        return svg;
+      }
+
+      function renderCharts() {
+        const chartsDiv = document.getElementById('charts');
+        chartsDiv.innerHTML = '';
+        chartsDiv.appendChild(createChart('Gross Income vs Income', 'gross', 'Gross Income', v => fmtNOK.format(v), showGrid, highlightIncome));
+        chartsDiv.appendChild(createChart('Net Income vs Income', 'net', 'Net Income', v => fmtNOK.format(v), showGrid, highlightIncome));
+        chartsDiv.appendChild(createChart('Total Tax vs Income', 'tax', 'Total Tax', v => fmtNOK.format(v), showGrid, highlightIncome));
+        chartsDiv.appendChild(createChart('Average Tax Rate vs Income', 'avgRate', 'Average Rate', v => fmtPct.format(v), showGrid, highlightIncome));
+        chartsDiv.appendChild(createChart('Marginal Tax Rate vs Income', 'marginal', 'Marginal Rate', v => fmtPct.format(v), showGrid, highlightIncome));
+      }
+
+      // Initial render
+      renderCharts();
+
+      // Event listeners
+      document.getElementById('grid-toggle').addEventListener('change', (e) => {
+        showGrid = e.target.checked;
+        renderCharts();
+      });
+
+      const incomeInput = document.getElementById('income-input');
+      incomeInput.addEventListener('input', (e) => {
+        const formatted = formatNumber(e.target.value);
+        e.target.value = formatted;
+        e.target.setSelectionRange(formatted.length, formatted.length);
+        
+        const raw = e.target.value.trim();
+        const cleaned = raw.replace(/\s/g, '');
+        const value = Number(cleaned);
+        highlightIncome = (Number.isFinite(value) && value >= minIncome && value <= maxIncome) ? value : null;
+        renderCharts();
+      });
+
+      function getCurrentIncomeValue() {
+        const raw = incomeInput.value.trim();
+        const cleaned = raw.replace(/\s/g, '');
+        return Number(cleaned) || 0;
+      }
+
+      function setIncomeValue(num) {
+        const formatted = formatNumber(num.toString());
+        incomeInput.value = formatted;
+        const value = num;
+        highlightIncome = (Number.isFinite(value) && value >= minIncome && value <= maxIncome) ? value : null;
+        renderCharts();
+      }
+
+      document.getElementById('income-up').addEventListener('click', () => {
+        const current = getCurrentIncomeValue();
+        setIncomeValue(current + 10000);
+      });
+
+      document.getElementById('income-down').addEventListener('click', () => {
+        const current = getCurrentIncomeValue();
+        setIncomeValue(Math.max(minIncome, current - 10000));
+      });
+
+      document.getElementById('clear-dots').addEventListener('click', () => {
+        highlightIncome = null;
+        incomeInput.value = '';
+        renderCharts();
+      });
+    </script>
+  </body>
+</html>

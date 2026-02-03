@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Norwegian Income Tax Estimator (2024)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Norwegian Income Tax Estimator</h1>
+
+      <form id="tax-form">
+        <div class="input-group">
+          <input id="gross" name="gross" type="text" inputmode="decimal" placeholder="e.g., 600 000" required />
+          <button type="button" id="up" class="arrow">▲</button>
+          <button type="button" id="down" class="arrow">▼</button>
+        </div>
+        <button type="submit">Calculate</button>
+      </form>
+
+      <section id="results" class="results hidden">
+        <h2>Results</h2>
+        <div class="grid">
+          <div><strong>Gross income:</strong><div id="grossOut">—</div></div>
+          <div><strong>Net income:</strong><div id="net">—</div></div>
+          <div><strong>Total tax:</strong><div id="tax">—</div></div>
+          <div><strong>Average tax rate:</strong><div id="avgRate">—</div></div>
+          <div><strong>Marginal tax rate:</strong><div id="marginal">—</div></div>
+        </div>
+        <p class="note"><strong>Disclaimer:</strong> Approximation from <em>non-professional</em>. <em>Not</em> financial advice.</p>
+      </section>
+
+      <footer>
+        <small><a href="compare.html">Compare Two Incomes</a> | <a href="chart.html">View Charts</a></small>
+        <small>Disclaimer: This tool provides estimates only and is not financial or legal advice. Use your own judgment and consult professionals. The author is not liable for any misuse or reliance on this information.</small>
+        <small>© 2026 alexaoh</small>
+      </footer>
+    </main>
+    <script src="tax.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

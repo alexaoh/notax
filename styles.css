@@ -1,0 +1,311 @@
+/* Base layout */
+:root {
+	--bg: #f6f7f9;
+	--text: #22262a;
+	--muted: #6b7280;
+	--border: #e5e7eb;
+	--white: #ffffff;
+	--primary: #0d6efd;
+	--primary-hover: #0b5ed7;
+	--footer-bg: #343a40;
+	--footer-fg: #e5e7eb;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+	background: var(--bg);
+	color: var(--text);
+	padding-bottom: 100px; /* Space for fixed footer */
+}
+
+.container {
+	max-width: 960px;
+	margin: 72px auto 0;
+	padding: 0 20px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding-bottom: 80px; /* Extra space for footer */
+}
+
+h1 {
+	font-size: 36px;
+	font-weight: 700;
+	letter-spacing: 0.2px;
+	margin: 0 0 28px;
+	text-align: center;
+}
+
+/* Form */
+form#tax-form {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.input-group {
+	display: inline-flex;
+	align-items: stretch;
+	background: var(--white);
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	overflow: hidden;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.input-group input[type="text"] {
+	width: 260px;
+	border: 0;
+	outline: 0;
+	padding: 12px 14px;
+	font-size: 16px;
+	background: transparent;
+}
+
+.input-group input::placeholder {
+	color: var(--muted);
+}
+
+.input-group .arrow {
+	border: 0;
+	min-width: 40px;
+	padding: 0 10px;
+	font-size: 14px;
+	background: var(--white);
+	color: var(--text);
+	border-left: 1px solid var(--border);
+	cursor: pointer;
+}
+
+.input-group .arrow:hover {
+	background: #f3f4f6;
+}
+
+button[type="submit"] {
+	background: var(--primary);
+	color: #fff;
+	border: 0;
+	padding: 10px 16px;
+	border-radius: 8px;
+	font-size: 15px;
+	font-weight: 600;
+	cursor: pointer;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08), 0 1px 3px rgba(16, 24, 40, 0.06);
+}
+
+button[type="submit"]:hover { background: var(--primary-hover); }
+
+/* Results */
+.results { width: 100%; max-width: 760px; margin-top: 28px; }
+.hidden { display: none; }
+
+.results h2 { font-size: 20px; margin: 4px 0 12px; }
+.results .grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 12px;
+}
+.results .grid > div {
+	background: var(--white);
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	padding: 12px 14px;
+}
+.results .note { color: var(--muted); font-size: 13px; margin-top: 10px; text-align: center; }
+
+/* Compare page helpers */
+.compare-inputs {
+	display: flex;
+	gap: 12px;
+	align-items: flex-end;
+	flex-wrap: wrap;
+}
+.compare-inputs input {
+	width: 200px;
+	padding: 10px 12px;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+}
+#compare-btn { background: var(--primary); color: #fff; border: 0; padding: 10px 14px; border-radius: 8px; cursor: pointer; }
+#compare-btn:hover { background: var(--primary-hover); }
+
+table { width: 100%; border-collapse: collapse; margin-top: 16px; background: var(--white); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: #f9fafb; }
+tr:last-child td { border-bottom: 0; }
+
+.bars { display: flex; gap: 16px; align-items: flex-end; margin-top: 16px; }
+.bar-group { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bar { width: 36px; background: #60a5fa; border-radius: 6px 6px 0 0; }
+
+/* Charts */
+svg {
+	max-width: 100%;
+	height: auto;
+	margin: 0 auto;
+	display: block;
+}
+
+/* Chart note */
+.chart-note {
+	color: var(--muted);
+	font-size: 14px;
+	text-align: center;
+	margin: 16px 0;
+	font-style: italic;
+}
+
+/* Chart controls */
+.chart-controls {
+	display: flex;
+	gap: 32px;
+	align-items: flex-start;
+	margin-bottom: 20px;
+	flex-wrap: wrap;
+	background: var(--white);
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	padding: 16px;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.chart-controls > div {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.chart-controls label {
+	font-weight: 500;
+	font-size: 14px;
+}
+
+/* Custom checkbox styling */
+#grid-toggle {
+	display: none;
+}
+
+.grid-toggle-label {
+	position: relative;
+	padding-left: 50px;
+	cursor: pointer;
+	line-height: 24px;
+	font-weight: 500;
+	transition: color 0.2s;
+}
+
+.grid-toggle-label:before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 2px;
+	width: 40px;
+	height: 20px;
+	border-radius: 10px;
+	background: var(--border);
+	transition: all 0.3s ease;
+	box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.grid-toggle-label:after {
+	content: '';
+	position: absolute;
+	left: 2px;
+	top: 4px;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: white;
+	transition: all 0.3s ease;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+#grid-toggle:checked + .grid-toggle-label:before {
+	background: var(--primary);
+	box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+#grid-toggle:checked + .grid-toggle-label:after {
+	left: 22px;
+	background: white;
+}
+
+/* Mobile chart adjustments - font sizes now handled in JS */
+@media (max-width: 768px) {
+	.chart-controls {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 16px;
+		padding: 12px;
+	}
+}
+
+/* Footer */
+footer {
+	position: fixed;
+	left: 0; right: 0; bottom: 0;
+	background: var(--footer-bg);
+	color: var(--footer-fg);
+	padding: 12px 16px;
+	text-align: center;
+}
+
+footer small {
+	display: block;
+	margin: 4px 0;
+}
+
+footer a { color: #cfe1ff; text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+	.container {
+		margin: 48px auto 0;
+		padding: 0 32px;
+		padding-bottom: 60px; /* Extra space for footer on mobile */
+	}
+	
+	h1 {
+		font-size: 28px;
+		margin-bottom: 24px;
+	}
+	
+	/* Make form stack vertically on small screens */
+	form#tax-form {
+		flex-direction: column;
+		gap: 16px;
+		align-items: stretch;
+	}
+	
+	/* Responsive input width */
+	.input-group input[type="text"] {
+		width: 100%;
+		max-width: 280px;
+	}
+	
+	/* Ensure footer is visible and has proper padding */
+	footer {
+		padding: 16px 20px;
+		font-size: 14px;
+	}
+	
+	/* Align buttons to the right for better right-handed usability */
+	button[type="submit"], #compare-btn, .clear-btn {
+		align-self: flex-end;
+	}
+	
+	/* Make compare inputs stack vertically on mobile */
+	.compare-inputs {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 16px;
+	}
+}

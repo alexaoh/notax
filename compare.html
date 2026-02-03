@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Compare Pair of Incomes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Compare Pair of Incomes</h1>
+      <p>Compare tax calculations between two gross incomes.</p>
+
+      <div class="compare-inputs">
+        <div class="input-group">
+          <input id="compare1" type="text" placeholder="e.g., 500 000" />
+          <button type="button" id="compare1-up" class="arrow">▲</button>
+          <button type="button" id="compare1-down" class="arrow">▼</button>
+        </div>
+        <div class="input-group">
+          <input id="compare2" type="text" placeholder="e.g., 700 000" />
+          <button type="button" id="compare2-up" class="arrow">▲</button>
+          <button type="button" id="compare2-down" class="arrow">▼</button>
+        </div>
+        <button id="compare-btn">Compare</button>
+      </div>
+      <div id="compare-results"></div>
+
+      <footer>
+        <small><a href="index.html">← Return home </a> | <a href="chart.html">View Charts</a></small>        <small>Disclaimer: This tool provides estimates only and is not financial or legal advice. Use your own judgment and consult professionals. The author is not liable for any misuse or reliance on this information.</small>
+        <small>© 2026 alexaoh</small>      </footer>
+    </main>
+    <script src="tax.js"></script>
+    <script>
+      const compare1 = document.getElementById('compare1');
+      const compare2 = document.getElementById('compare2');
+
+      [compare1, compare2].forEach(input => {
+        input.addEventListener('input', (e) => {
+          const formatted = formatNumber(e.target.value);
+          e.target.value = formatted;
+          e.target.setSelectionRange(formatted.length, formatted.length);
+        });
+      });
+
+      function getCurrentValue(input) {
+        const raw = input.value.trim();
+        const cleaned = raw.replace(/\s/g, '');
+        return Number(cleaned) || 0;
+      }
+
+      function setValue(input, num) {
+        const formatted = formatNumber(num.toString());
+        input.value = formatted;
+      }
+
+      document.getElementById('compare1-up').addEventListener('click', () => {
+        const current = getCurrentValue(compare1);
+        setValue(compare1, current + 10000);
+      });
+
+      document.getElementById('compare1-down').addEventListener('click', () => {
+        const current = getCurrentValue(compare1);
+        setValue(compare1, Math.max(0, current - 10000));
+      });
+
+      document.getElementById('compare2-up').addEventListener('click', () => {
+        const current = getCurrentValue(compare2);
+        setValue(compare2, current + 10000);
+      });
+
+      document.getElementById('compare2-down').addEventListener('click', () => {
+        const current = getCurrentValue(compare2);
+        setValue(compare2, Math.max(0, current - 10000));
+      });
+
+      document.getElementById('compare-btn').addEventListener('click', () => {
+        const raw1 = compare1.value.trim();
+        const cleaned1 = raw1.replace(/\s/g, '');
+        const x1 = Number(cleaned1);
+        const raw2 = compare2.value.trim();
+        const cleaned2 = raw2.replace(/\s/g, '');
+        const x2 = Number(cleaned2);
+        if (!Number.isFinite(x1) || x1 <= 0 || !Number.isFinite(x2) || x2 <= 0) return;
+
+        const tax1 = T(x1);
+        const net1 = x1 - tax1;
+        const tax1_1 = T(x1 + 1);
+        const marginal1 = tax1_1 - tax1;
+        const avgRate1 = tax1 / x1;
+
+        const tax2 = T(x2);
+        const net2 = x2 - tax2;
+        const tax2_1 = T(x2 + 1);
+        const marginal2 = tax2_1 - tax2;
+        const avgRate2 = tax2 / x2;
+
+        const resultsDiv = document.getElementById('compare-results');
+        resultsDiv.innerHTML = `
+          <table>
+            <tr><th>Metric</th><th></th><th></th><th>Difference</th></tr>
+            <tr><td>Gross Income</td><td>${fmtNOK.format(x1)}</td><td>${fmtNOK.format(x2)}</td><td>${fmtNOK.format(Math.abs(x1 - x2))}</td></tr>
+            <tr><td>Net Income</td><td>${fmtNOK.format(net1)}</td><td>${fmtNOK.format(net2)}</td><td>${fmtNOK.format(Math.abs(net1 - net2))}</td></tr>
+            <tr><td>Total Tax</td><td>${fmtNOK.format(tax1)}</td><td>${fmtNOK.format(tax2)}</td><td>${fmtNOK.format(Math.abs(tax1 - tax2))}</td></tr>
+            <tr><td>Average Tax Rate</td><td>${fmtPct.format(avgRate1)}</td><td>${fmtPct.format(avgRate2)}</td><td>${fmtPct.format(Math.abs(avgRate1 - avgRate2))}</td></tr>
+            <tr><td>Marginal Tax Rate</td><td>${fmtPct.format(marginal1)}</td><td>${fmtPct.format(marginal2)}</td><td>${fmtPct.format(Math.abs(marginal1 - marginal2))}</td></tr>
+          </table>
+        `;
+      });
+    </script>
+  </body>
+</html>
